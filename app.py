@@ -3,25 +3,26 @@ import requests
 import time
 
 # -------------------------
-# Custom CSS Styling
+# Custom CSS Styling: Blue Theme
 # -------------------------
 st.markdown("""
     <style>
         /* Main Layout */
         .stApp, .main, .block-container {
-            background: linear-gradient(135deg, #eef2fb, #ddeaf6);
+            background: linear-gradient(135deg, #e3f1fa 0%, #e7ecff 100%);
             font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
         }
         /* Sidebar */
         .sidebar .sidebar-content {
-            background: linear-gradient(135deg, #f5f7fa, #f3f6fb);
+            background: linear-gradient(135deg, #d6e6f2, #f1f3fb 85%);
             border-radius: 16px;
             padding: 20px 0 18px 0;
         }
         /* Navigation Highlight */
         [data-testid="stSidebarNav"] li[data-testid="stSidebarNavLink"]:has(svg) {
             font-weight: 600 !important;
-            background: #c8e6e7 !important;
+            background: #bed6f9 !important;
+            color: #234c63 !important;
             border-radius: 7px;
             padding-left: 10px !important;
         }
@@ -29,7 +30,7 @@ st.markdown("""
         .main-title {
             font-size: 44px;
             font-weight: 900;
-            background: linear-gradient(90deg, #234c63 40%, #3282b8 60%);
+            background: linear-gradient(90deg, #234c63 40%, #2ca2f2 60%);
             -webkit-background-clip: text;
             -webkit-text-fill-color: transparent;
             text-align: center;
@@ -37,7 +38,7 @@ st.markdown("""
         }
         .subtitle {
             font-size: 20px;
-            color: #415a77;
+            color: #2ca2f2;
             text-align: center;
             margin-bottom: 26px;
         }
@@ -47,12 +48,12 @@ st.markdown("""
             padding: 25px 36px;
             margin: 18px 0;
             text-align: center;
-            box-shadow: 0px 8px 25px rgba(27, 38, 44, 0.12);
-            background: #fff;
+            box-shadow: 0px 8px 25px rgba(27, 38, 44, 0.10);
+            background: #f7fbfe;
         }
         .main-card:hover {
             transform: translateY(-4px) scale(1.025);
-            box-shadow: 0px 12px 30px rgba(50, 130, 184, 0.11);
+            box-shadow: 0px 12px 30px rgba(44, 162, 242, 0.10);
         }
         /* Sentiment Result */
         .result-box {
@@ -60,9 +61,9 @@ st.markdown("""
             font-weight: 700;
             animation: bounce-in .7s;
         }
-        .positive { background: linear-gradient(100deg, #ebfbee, #baf2c1); color: #20752c; }
-        .negative { background: linear-gradient(100deg, #fff1f3, #f8d7da); color: #b7322b; }
-        .neutral { background: linear-gradient(100deg, #f6f9fc, #fffbe7); color: #897108; }
+        .positive { background: linear-gradient(100deg, #def3ff, #c7eafd); color: #0a5db2; }
+        .negative { background: linear-gradient(100deg, #c6dbf7, #e3e7f7); color: #102948; }
+        .neutral  { background: linear-gradient(100deg, #e5eeff, #e1e8f8); color: #234c63; }
         @keyframes bounce-in {
             0% { transform: scale(0.92); opacity: 0; }
             60% { transform: scale(1.05); }
@@ -71,31 +72,31 @@ st.markdown("""
         }
         /* Input box focus */
         textarea:focus {
-            border: 2px solid #3282b8 !important;
-            box-shadow: 0 0 8px #71c0e8;
+            border: 2px solid #2ca2f2 !important;
+            box-shadow: 0 0 8px #2ca2f288;
             background: #f1f9ff !important;
         }
         /* Character counter */
-        .char-counter { font-size: 14px; color: #495057; text-align: right; margin-top: -14px; }
-        .char-counter.warning { color: #d6336c; font-weight: bold; }
+        .char-counter { font-size: 14px; color: #256396; text-align: right; margin-top: -14px; }
+        .char-counter.warning { color: #2c7be5; font-weight: bold; }
         /* Toast/alert box */
         .toast-alert {
             font-size: 17px;
-            background: #fff3cd;
-            color: #8a6d3b;
+            background: #d0e8ff;
+            color: #0a5db2;
             border-radius: 14px;
-            border: 1px solid #ffeeba;
+            border: 1px solid #b3d7ff;
             padding: 12px;
             margin-bottom: 14px;
         }
         /* Footer */
         .footer {
             font-size: 14px;
-            color: #8da9c4;
+            color: #246b98;
             text-align: center;
             position: fixed;
             left: 0; right: 0; bottom: 0;
-            background: #f6f9fc;
+            background: #e7f3ff;
             padding: 16px 0 10px 0;
             z-index: 9999;
         }
@@ -119,7 +120,6 @@ page = st.sidebar.radio("Go to:", ["Home", "About", "Prediction"])
 if page == "Home":
     st.markdown("<div class='main-title'>Tweet Sentiment Analysis 🌙</div>", unsafe_allow_html=True)
     st.markdown("<div class='subtitle'>Fast • Beautiful • Accurate</div>", unsafe_allow_html=True)
-
     st.markdown("""
         <div class='main-card'>
             <h3>Welcome!</h3>
@@ -178,7 +178,6 @@ elif page == "Prediction":
         if not tweet.strip():
             st.markdown("<div class='toast-alert'>⚠️ Please enter a tweet before submitting.</div>", unsafe_allow_html=True)
             st.stop()
-
         with st.spinner("Analyzing sentiment..."):
             try:
                 max_retries = 3
@@ -234,4 +233,4 @@ elif page == "Prediction":
 # -------------------------
 # Footer
 # -------------------------
-st.markdown("<div class='footer'>Developed by Ian Kiptoo © 2025 | <a href='#' style='color:#3282b8;text-decoration:none;'>Contact</a></div>", unsafe_allow_html=True)
+st.markdown("<div class='footer'>Developed by Ian Kiptoo © 2025 | <a href='#' style='color:#2ca2f2;text-decoration:none;'>Contact</a></div>", unsafe_allow_html=True)
