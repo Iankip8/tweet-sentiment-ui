@@ -7,7 +7,7 @@ import time
 # -------------------------
 st.markdown("""
     <style>
-        /* Entire app gradient background */
+        /* Full app gradient */
         .stApp, .main, .block-container {
             background: linear-gradient(135deg, #f0f4f8, #d9e2ec);
             font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
@@ -15,7 +15,7 @@ st.markdown("""
 
         /* Sidebar styling */
         .sidebar .sidebar-content {
-            background-color: #e9ecef;
+            background: linear-gradient(135deg, #e9ecef, #f1f3f6);
             border-radius: 12px;
             padding: 20px;
         }
@@ -36,27 +36,24 @@ st.markdown("""
             margin-bottom: 30px;
         }
 
-        /* Home page cards */
-        .home-card {
-            background-color: rgba(255, 255, 255, 0.85);
+        /* Cards */
+        .home-card, .result-box {
             border-radius: 20px;
             padding: 30px;
             margin-bottom: 20px;
             text-align: center;
             box-shadow: 0px 8px 25px rgba(0,0,0,0.15);
+            transition: transform 0.2s ease-in-out;
+        }
+        .home-card:hover {
+            transform: translateY(-5px);
         }
 
-        /* Sentiment result boxes */
+        /* Result boxes */
         .result-box {
-            padding: 25px;
-            border-radius: 16px;
-            margin-top: 20px;
             font-size: 28px;
-            text-align: center;
             font-weight: 700;
             animation: fadeIn 0.7s ease-in-out;
-            transition: all 0.3s ease-in-out;
-            box-shadow: 0px 8px 20px rgba(0,0,0,0.1);
         }
         .positive { background-color: #d4edda; color: #155724; }
         .negative { background-color: #f8d7da; color: #721c24; }
@@ -114,6 +111,7 @@ if page == "Home":
 # ABOUT PAGE
 # -------------------------
 elif page == "About":
+    st.markdown("<div class='home-card'>", unsafe_allow_html=True)
     st.title("About This Project")
     st.write("""
         This interactive web app analyzes the sentiment of tweets using a trained NLP machine learning model.
@@ -129,18 +127,20 @@ elif page == "About":
         - **1 = Negative 😠**  
         - **2 = Positive 😊**  
 
-        The model is trained specifically for tweets and handles slang, emojis, abbreviations, and informal language.
+        The model handles slang, emojis, abbreviations, and informal language.
     """)
+    st.markdown("</div>", unsafe_allow_html=True)
 
 # -------------------------
 # PREDICTION PAGE
 # -------------------------
 elif page == "Prediction":
+    st.markdown("<div class='home-card'>", unsafe_allow_html=True)
     st.title("Predict Tweet Sentiment")
     
     tweet = st.text_area("Enter your tweet:", height=140)
     
-    # Character counter with warning >280
+    # Character counter
     char_class = "warning" if len(tweet) > 280 else ""
     st.markdown(f"<div class='char-counter {char_class}'>{len(tweet)} characters</div>",
                 unsafe_allow_html=True)
@@ -152,18 +152,27 @@ elif page == "Prediction":
 
         with st.spinner("Analyzing sentiment..."):
             try:
-                start_time = time.time()
-                response = requests.post(
-                    API_URL,
-                    json={"input": [tweet]},
-                    headers={"Content-Type": "application/json"},
-                    timeout=10
-                )
-                api_time = time.time() - start_time
+                max_retries = 3
+                for attempt in range(max_retries):
+                    start_time = time.time()
+                    response = requests.post(
+                        API_URL,
+                        json={"input": [tweet]},
+                        headers={"Content-Type": "application/json"},
+                        timeout=10
+                    )
+                    api_time = time.time() - start_time
 
-                # Handle empty or invalid response
-                if response.status_code != 200 or not response.text.strip():
-                    st.error(f"❌ API returned an error (status {response.status_code}) or empty response.")
+                    if response.status_code == 429:
+                        time.sleep(2 + attempt*2)  # exponential backoff
+                    else:
+                        break
+
+                if response.status_code == 429:
+                    st.error("❌ Too many requests. Please wait a few seconds and try again.")
+                    st.stop()
+                elif response.status_code != 200:
+                    st.error(f"❌ API returned an error (status {response.status_code})")
                     st.json({"response_text": response.text})
                     st.stop()
 
@@ -173,7 +182,6 @@ elif page == "Prediction":
                     st.error("❌ API response missing 'prediction'.")
                     st.stop()
 
-                # Sentiment mapping
                 sentiments = {
                     2: ("Positive 😊", "positive"),
                     1: ("Negative 😠", "negative"),
@@ -181,9 +189,7 @@ elif page == "Prediction":
                 }
                 label, css_class = sentiments.get(prediction, ("Unknown 🤔", "neutral"))
 
-                # Display result
                 st.markdown(f"<div class='result-box {css_class}'>{label}</div>", unsafe_allow_html=True)
-
                 st.info(f"⏱ API Response Time: {api_time:.2f} seconds")
 
             except requests.exceptions.Timeout:
@@ -192,6 +198,8 @@ elif page == "Prediction":
                 st.error("🔌 Could not connect to the API. The API may be offline.")
             except Exception as e:
                 st.error(f"Unexpected error: {e}")
+
+    st.markdown("</div>", unsafe_allow_html=True)
 
 # -------------------------
 # Footer
