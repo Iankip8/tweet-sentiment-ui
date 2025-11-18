@@ -7,13 +7,20 @@ import time
 # -------------------------
 st.markdown("""
     <style>
-        /* Global gradient background */
-        body {
+        /* Entire app gradient background */
+        .stApp, .main, .block-container {
             background: linear-gradient(135deg, #f0f4f8, #d9e2ec);
             font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
         }
 
-        /* Header */
+        /* Sidebar styling */
+        .sidebar .sidebar-content {
+            background-color: #e9ecef;
+            border-radius: 12px;
+            padding: 20px;
+        }
+
+        /* Titles */
         .title {
             font-size: 44px;
             font-weight: 900;
@@ -29,6 +36,16 @@ st.markdown("""
             margin-bottom: 30px;
         }
 
+        /* Home page cards */
+        .home-card {
+            background-color: rgba(255, 255, 255, 0.85);
+            border-radius: 20px;
+            padding: 30px;
+            margin-bottom: 20px;
+            text-align: center;
+            box-shadow: 0px 8px 25px rgba(0,0,0,0.15);
+        }
+
         /* Sentiment result boxes */
         .result-box {
             padding: 25px;
@@ -41,12 +58,10 @@ st.markdown("""
             transition: all 0.3s ease-in-out;
             box-shadow: 0px 8px 20px rgba(0,0,0,0.1);
         }
-
         .positive { background-color: #d4edda; color: #155724; }
         .negative { background-color: #f8d7da; color: #721c24; }
         .neutral { background-color: #fff3cd; color: #856404; }
 
-        /* Fade-in animation */
         @keyframes fadeIn {
             from {opacity: 0; transform: translateY(-10px);}
             to {opacity: 1; transform: translateY(0);}
@@ -55,13 +70,6 @@ st.markdown("""
         /* Character counter */
         .char-counter { font-size: 14px; color: #495057; text-align: right; margin-top: -10px; }
         .char-counter.warning { color: #d6336c; font-weight: bold; }
-
-        /* Sidebar */
-        .sidebar .sidebar-content {
-            background-color: #e9ecef;
-            border-radius: 12px;
-            padding: 20px;
-        }
 
         /* Footer */
         .footer { font-size: 14px; color: #495057; text-align: center; margin-top: 50px; padding-bottom: 20px; }
@@ -85,7 +93,22 @@ page = st.sidebar.radio("Go to:", ["Home", "About", "Prediction"])
 if page == "Home":
     st.markdown("<div class='title'>Tweet Sentiment Analysis 🌙</div>", unsafe_allow_html=True)
     st.markdown("<div class='subtitle'>Fast • Beautiful • Accurate</div>", unsafe_allow_html=True)
-    st.write("Use the sidebar to navigate through the app.")
+
+    st.markdown("""
+        <div class='home-card'>
+            <h3>Welcome!</h3>
+            <p>Analyze the sentiment of your tweets instantly. Our AI model understands slang, emojis, and informal language.</p>
+        </div>
+        <div class='home-card'>
+            <h3>How to Use</h3>
+            <ol style='text-align:left; display:inline-block;'>
+                <li>Navigate to the "Prediction" page</li>
+                <li>Type or paste your tweet</li>
+                <li>Click "Analyze Sentiment"</li>
+                <li>View the result instantly</li>
+            </ol>
+        </div>
+    """, unsafe_allow_html=True)
 
 # -------------------------
 # ABOUT PAGE
@@ -96,7 +119,7 @@ elif page == "About":
         This interactive web app analyzes the sentiment of tweets using a trained NLP machine learning model.
 
         ### How It Works
-        - You type a tweet  
+        - Type a tweet  
         - The app sends it to our hosted API  
         - The API processes the text using the ML pipeline  
         - A sentiment label is returned instantly  
@@ -105,7 +128,7 @@ elif page == "About":
         - **0 = Neutral 😐**  
         - **1 = Negative 😠**  
         - **2 = Positive 😊**  
-        
+
         The model is trained specifically for tweets and handles slang, emojis, abbreviations, and informal language.
     """)
 
@@ -117,7 +140,7 @@ elif page == "Prediction":
     
     tweet = st.text_area("Enter your tweet:", height=140)
     
-    # Character counter
+    # Character counter with warning >280
     char_class = "warning" if len(tweet) > 280 else ""
     st.markdown(f"<div class='char-counter {char_class}'>{len(tweet)} characters</div>",
                 unsafe_allow_html=True)
@@ -159,18 +182,14 @@ elif page == "Prediction":
                 label, css_class = sentiments.get(prediction, ("Unknown 🤔", "neutral"))
 
                 # Display result
-                st.markdown(f"<div class='result-box {css_class}'>{label}</div>",
-                            unsafe_allow_html=True)
+                st.markdown(f"<div class='result-box {css_class}'>{label}</div>", unsafe_allow_html=True)
 
-                # API latency info
                 st.info(f"⏱ API Response Time: {api_time:.2f} seconds")
 
             except requests.exceptions.Timeout:
                 st.error("⏳ The API took too long to respond.")
-
             except requests.exceptions.ConnectionError:
                 st.error("🔌 Could not connect to the API. The API may be offline.")
-
             except Exception as e:
                 st.error(f"Unexpected error: {e}")
 
