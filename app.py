@@ -7,39 +7,41 @@ import time
 # -------------------------
 st.markdown("""
     <style>
-
-        /* Global background */
+        /* Global gradient background */
         body {
-            background-color: #f4f6f9;
+            background: linear-gradient(135deg, #f0f4f8, #d9e2ec);
+            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
         }
 
-        /* Title */
+        /* Header */
         .title {
-            font-size: 42px;
+            font-size: 44px;
             font-weight: 900;
-            color: #2d3436;
+            color: #1b262c;
             text-align: center;
-            padding-bottom: 5px;
+            margin-bottom: 5px;
         }
 
-        /* Subtitle */
         .subtitle {
             font-size: 20px;
-            color: #636e72;
+            color: #415a77;
             text-align: center;
             margin-bottom: 30px;
         }
 
-        /* Result styling */
+        /* Sentiment result boxes */
         .result-box {
             padding: 25px;
-            border-radius: 12px;
+            border-radius: 16px;
             margin-top: 20px;
-            font-size: 26px;
+            font-size: 28px;
             text-align: center;
             font-weight: 700;
-            animation: fadeIn 0.6s ease-in-out;
+            animation: fadeIn 0.7s ease-in-out;
+            transition: all 0.3s ease-in-out;
+            box-shadow: 0px 8px 20px rgba(0,0,0,0.1);
         }
+
         .positive {
             background-color: #d4edda;
             color: #155724;
@@ -55,18 +57,38 @@ st.markdown("""
 
         /* Fade-in animation */
         @keyframes fadeIn {
-            from {opacity: 0;}
-            to {opacity: 1;}
+            from {opacity: 0; transform: translateY(-10px);}
+            to {opacity: 1; transform: translateY(0);}
         }
 
         /* Character counter */
         .char-counter {
             font-size: 14px;
-            color: #636e72;
+            color: #495057;
             text-align: right;
             margin-top: -10px;
         }
 
+        .char-counter.warning {
+            color: #d6336c;
+            font-weight: bold;
+        }
+
+        /* Sidebar */
+        .sidebar .sidebar-content {
+            background-color: #e9ecef;
+            border-radius: 12px;
+            padding: 20px;
+        }
+
+        /* Footer */
+        .footer {
+            font-size: 14px;
+            color: #495057;
+            text-align: center;
+            margin-top: 50px;
+            padding-bottom: 20px;
+        }
     </style>
 """, unsafe_allow_html=True)
 
@@ -76,11 +98,10 @@ st.markdown("""
 API_URL = "https://nlp-tweet-sentiment-project.onrender.com/predict"
 
 # -------------------------
-# Navigation
+# Sidebar Navigation
 # -------------------------
 st.sidebar.title("Navigation")
 page = st.sidebar.radio("Go to:", ["Home", "About", "Prediction"])
-
 
 # -------------------------
 # HOME PAGE
@@ -88,8 +109,7 @@ page = st.sidebar.radio("Go to:", ["Home", "About", "Prediction"])
 if page == "Home":
     st.markdown("<div class='title'>Tweet Sentiment Analysis 🌙</div>", unsafe_allow_html=True)
     st.markdown("<div class='subtitle'>Fast • Beautiful • Accurate</div>", unsafe_allow_html=True)
-    st.write("Use the sidebar to explore the app.")
-
+    st.write("Use the sidebar to navigate through the app.")
 
 # -------------------------
 # ABOUT PAGE
@@ -101,8 +121,8 @@ elif page == "About":
 
         ### How It Works
         - You type a tweet  
-        - The app sends it to our hosted Flask API  
-        - The API processes the text using the machine-learning pipeline  
+        - The app sends it to our hosted API  
+        - The API processes the text using the ML pipeline  
         - A sentiment label is returned instantly  
 
         ### Sentiment Labels
@@ -113,19 +133,18 @@ elif page == "About":
         The model is trained specifically for tweets and handles slang, emojis, abbreviations, and informal language.
     """)
 
-
 # -------------------------
 # PREDICTION PAGE
 # -------------------------
 elif page == "Prediction":
-
     st.title("Predict Tweet Sentiment")
     
     tweet = st.text_area("Enter your tweet:", height=140)
-
+    
     # Character counter
+    char_class = "warning" if len(tweet) > 280 else ""
     st.markdown(
-        f"<div class='char-counter'>{len(tweet)} characters</div>", 
+        f"<div class='char-counter {char_class}'>{len(tweet)} characters</div>",
         unsafe_allow_html=True
     )
 
@@ -133,27 +152,23 @@ elif page == "Prediction":
 
         if not tweet.strip():
             st.warning("⚠️ Please enter a tweet before submitting.")
-            st.toast("Tweet cannot be empty!", icon="⚠️")
             st.stop()
 
         # Spinner animation
         with st.spinner("Analyzing sentiment..."):
             try:
                 start_time = time.time()
-
                 response = requests.post(
                     API_URL,
                     json={"input": [tweet]},
                     headers={"Content-Type": "application/json"},
                     timeout=10
                 )
-
                 api_time = time.time() - start_time
 
                 if response.status_code != 200:
                     st.error("❌ API returned an error.")
                     st.json(response.json())
-                    st.toast("The API returned an error.", icon="⚠️")
                     st.stop()
 
                 data = response.json()
@@ -174,19 +189,19 @@ elif page == "Prediction":
                     unsafe_allow_html=True
                 )
 
-                # API latency
+                # API latency info
                 st.info(f"⏱ API Response Time: {api_time:.2f} seconds")
-
-                st.toast("Prediction successful!", icon="🎉")
 
             except requests.exceptions.Timeout:
                 st.error("⏳ The API took too long to respond.")
-                st.toast("Request timed out!", icon="⚠️")
 
             except requests.exceptions.ConnectionError:
-                st.error("🔌 Could not connect to the API. It may be offline.")
-                st.toast("API connection failed!", icon="❌")
+                st.error("🔌 Could not connect to the API. The API may be offline.")
 
             except Exception as e:
                 st.error(f"Unexpected error: {e}")
-                st.toast("Something went wrong!", icon="🔥")
+
+# -------------------------
+# Footer
+# -------------------------
+st.markdown("<div class='footer'>Developed by Ian Kiptoo © 2025</div>", unsafe_allow_html=True)
