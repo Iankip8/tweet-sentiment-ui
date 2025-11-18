@@ -42,18 +42,9 @@ st.markdown("""
             box-shadow: 0px 8px 20px rgba(0,0,0,0.1);
         }
 
-        .positive {
-            background-color: #d4edda;
-            color: #155724;
-        }
-        .negative {
-            background-color: #f8d7da;
-            color: #721c24;
-        }
-        .neutral {
-            background-color: #fff3cd;
-            color: #856404;
-        }
+        .positive { background-color: #d4edda; color: #155724; }
+        .negative { background-color: #f8d7da; color: #721c24; }
+        .neutral { background-color: #fff3cd; color: #856404; }
 
         /* Fade-in animation */
         @keyframes fadeIn {
@@ -62,17 +53,8 @@ st.markdown("""
         }
 
         /* Character counter */
-        .char-counter {
-            font-size: 14px;
-            color: #495057;
-            text-align: right;
-            margin-top: -10px;
-        }
-
-        .char-counter.warning {
-            color: #d6336c;
-            font-weight: bold;
-        }
+        .char-counter { font-size: 14px; color: #495057; text-align: right; margin-top: -10px; }
+        .char-counter.warning { color: #d6336c; font-weight: bold; }
 
         /* Sidebar */
         .sidebar .sidebar-content {
@@ -82,13 +64,7 @@ st.markdown("""
         }
 
         /* Footer */
-        .footer {
-            font-size: 14px;
-            color: #495057;
-            text-align: center;
-            margin-top: 50px;
-            padding-bottom: 20px;
-        }
+        .footer { font-size: 14px; color: #495057; text-align: center; margin-top: 50px; padding-bottom: 20px; }
     </style>
 """, unsafe_allow_html=True)
 
@@ -143,18 +119,14 @@ elif page == "Prediction":
     
     # Character counter
     char_class = "warning" if len(tweet) > 280 else ""
-    st.markdown(
-        f"<div class='char-counter {char_class}'>{len(tweet)} characters</div>",
-        unsafe_allow_html=True
-    )
+    st.markdown(f"<div class='char-counter {char_class}'>{len(tweet)} characters</div>",
+                unsafe_allow_html=True)
 
     if st.button("Analyze Sentiment"):
-
         if not tweet.strip():
             st.warning("⚠️ Please enter a tweet before submitting.")
             st.stop()
 
-        # Spinner animation
         with st.spinner("Analyzing sentiment..."):
             try:
                 start_time = time.time()
@@ -166,13 +138,17 @@ elif page == "Prediction":
                 )
                 api_time = time.time() - start_time
 
-                if response.status_code != 200:
-                    st.error("❌ API returned an error.")
-                    st.json(response.json())
+                # Handle empty or invalid response
+                if response.status_code != 200 or not response.text.strip():
+                    st.error(f"❌ API returned an error (status {response.status_code}) or empty response.")
+                    st.json({"response_text": response.text})
                     st.stop()
 
                 data = response.json()
-                prediction = data["prediction"][0]
+                prediction = data.get("prediction", [None])[0]
+                if prediction is None:
+                    st.error("❌ API response missing 'prediction'.")
+                    st.stop()
 
                 # Sentiment mapping
                 sentiments = {
@@ -180,14 +156,11 @@ elif page == "Prediction":
                     1: ("Negative 😠", "negative"),
                     0: ("Neutral 😐", "neutral"),
                 }
-
                 label, css_class = sentiments.get(prediction, ("Unknown 🤔", "neutral"))
 
                 # Display result
-                st.markdown(
-                    f"<div class='result-box {css_class}'>{label}</div>",
-                    unsafe_allow_html=True
-                )
+                st.markdown(f"<div class='result-box {css_class}'>{label}</div>",
+                            unsafe_allow_html=True)
 
                 # API latency info
                 st.info(f"⏱ API Response Time: {api_time:.2f} seconds")
